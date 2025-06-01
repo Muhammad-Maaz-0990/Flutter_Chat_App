@@ -1,1 +1,2 @@
-# Final_Chat_APP_Flutter
+# chat_application
+Chat Application in flutter
