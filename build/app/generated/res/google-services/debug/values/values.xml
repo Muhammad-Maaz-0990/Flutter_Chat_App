@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">130495980862-6vno425f7mkvhhmbpff0ts4o4smk2hbk.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">130495980862</string>
+    <string name="google_api_key" translatable="false">AIzaSyAloG-srV8IQWJEhrckAWvYJsz629lJ8hc</string>
+    <string name="google_app_id" translatable="false">1:130495980862:android:648c5d636c99085c36386f</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyAloG-srV8IQWJEhrckAWvYJsz629lJ8hc</string>
+    <string name="google_storage_bucket" translatable="false">ms-intouch-1a58b.firebasestorage.app</string>
+    <string name="project_id" translatable="false">ms-intouch-1a58b</string>
+</resources>

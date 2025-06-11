@@ -18,9 +18,9 @@ class AuthService {
     return available;
   }
 
-  // ✅ Send OTP to user's email
-  static Future<bool> sendOtpToEmail(String email) async {
-    print('[sendOtpToEmail] Generating OTP...');
+  // ✅ Send Signup OTP Email
+  static Future<bool> sendSignupOtpToEmail(String email) async {
+    print('[sendSignupOtpToEmail] Generating OTP...');
     final otp = (100000 + Random().nextInt(900000)).toString();
     final expirationTime = DateTime.now().add(const Duration(minutes: 5));
 
@@ -30,16 +30,40 @@ class AuthService {
         'expirationTime': expirationTime,
       });
 
-      final result = await EmailSender.sendEmail(
-        email,
-        "Your OTP Code",
-        "Your OTP is: $otp. It is valid for 5 minutes.",
+      final result = await EmailSender.sendSignupOTP(
+        toEmail: email,
+        otp: otp,
       );
 
-      print('[sendOtpToEmail] OTP sent: $result');
+      print('[sendSignupOtpToEmail] OTP sent: $result');
       return result;
     } catch (e) {
-      print('[sendOtpToEmail] Error: $e');
+      print('[sendSignupOtpToEmail] Error: $e');
+      return false;
+    }
+  }
+
+  // ✅ Send Login OTP Email
+  static Future<bool> sendLoginOtpToEmail(String email) async {
+    print('[sendLoginOtpToEmail] Generating OTP...');
+    final otp = (100000 + Random().nextInt(900000)).toString();
+    final expirationTime = DateTime.now().add(const Duration(minutes: 5));
+
+    try {
+      await otpCollection.doc(email).set({
+        'otp': otp,
+        'expirationTime': expirationTime,
+      });
+
+      final result = await EmailSender.sendLoginOTP(
+        toEmail: email,
+        otp: otp,
+      );
+
+      print('[sendLoginOtpToEmail] OTP sent: $result');
+      return result;
+    } catch (e) {
+      print('[sendLoginOtpToEmail] Error: $e');
       return false;
     }
   }

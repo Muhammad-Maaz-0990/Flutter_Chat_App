@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_sound/flutter_sound.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,7 +13,6 @@ import 'package:photo_view/photo_view.dart';
 
 import '../../api/apis.dart';
 import '../../models/message.dart';
-import '../../widgets/message_card.dart';
 import '../services/cloudinary_service.dart';
 import '../screens/friend_info_screen.dart';
 

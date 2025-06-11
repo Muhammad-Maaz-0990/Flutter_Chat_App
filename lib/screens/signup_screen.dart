@@ -70,10 +70,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     try {
-      final otpSent = await AuthService.sendOtpToEmail(email);
-      setState(() => _isLoading = false);
-
-      if (otpSent) {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -85,11 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to send OTP")),
-        );
-      }
+      
     } catch (error) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
