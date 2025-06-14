@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'dart:async';
@@ -47,15 +46,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     setState(() {
       _isLoading = true;
     });
-    bool sent = false;
-    if(widget.isLogin){
-        sent = await AuthService.sendLoginOtpToEmail(widget.email);
-    }
-    else
-    {
-         sent = await AuthService.sendSignupOtpToEmail(widget.email);
-    }
-    
+
+    bool sent = await AuthService.sendOtpToEmail(widget.email);
     if (!sent) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to send OTP. Please try again.")),
@@ -109,8 +101,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           }
         } else {
           String? pushToken = await FirebaseMessaging.instance.getToken();
-          await AuthService.registerUser(widget.username, widget.email, widget.password, pushToken!);
-                  Navigator.pushReplacement(
+          if (pushToken != null) {
+            await AuthService.registerUser(widget.username, widget.email, widget.password, pushToken);
+          }
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const LoginScreen()),
           );
@@ -130,17 +124,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     });
   }
 
-Future<void> signOutUser() async {
-  try {
-    await FirebaseAuth.instance.signOut();
-  } catch (e) {
-    print('Sign out failed: $e');
-  }
-}
-
   @override
-  Future<void> dispose() async {
-    await signOutUser();
+  void dispose() {
     _timer?.cancel();
     for (var controller in otpControllers) {
       controller.dispose();

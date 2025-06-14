@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'add_status_screen.dart';
 import 'view_status_screen.dart';
 
-// ...imports remain unchanged
 class StatusScreen extends StatefulWidget {
   const StatusScreen({super.key});
 
@@ -58,31 +57,14 @@ class _StatusScreenState extends State<StatusScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
-  Future<void> _deleteExpiredStatuses(QuerySnapshot snapshot) async {
-    final now = DateTime.now();
-    for (var doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final timestamp = data['timestamp'];
-      if (timestamp is Timestamp) {
-        final time = timestamp.toDate();
-        if (now.difference(time).inHours >= 24) {
-          await FirebaseFirestore.instance.collection('statuses').doc(doc.id).delete();
-        }
-      }
-    }
-  }
-
   Future<void> _loadStatuses(QuerySnapshot snapshot) async {
     if (!mounted) return;
-
+    
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // 🔥 Delete old statuses before processing
-      await _deleteExpiredStatuses(snapshot);
-
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
       final friends = List<String>.from(userDoc['friends'] ?? []);
 
@@ -153,24 +135,20 @@ class _StatusScreenState extends State<StatusScreen> with SingleTickerProviderSt
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Status'),
-      backgroundColor: Colors.blueAccent,
-      centerTitle: true,
-      foregroundColor: Colors.white,
-    ),
-    body: _isLoading
-        ? Center(child: CircularProgressIndicator(color: Colors.blueAccent))
-        : ListView.builder(
-            itemCount: 1 + // My Status tile
-                (friendStatusPreview.isNotEmpty ? 2 : 1) + // Section title + divider if needed
-                friendStatusPreview.length, // Friend statuses
-            itemBuilder: (context, index) {
-              // My Status tile
-              if (index == 0) {
-                return Builder(
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Status', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blueAccent,
+        centerTitle: true,
+        foregroundColor: Colors.white,
+        
+      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+          : ListView(
+              children: [
+                Builder(
                   builder: (context) => GestureDetector(
                     onTap: () async {
                       if (myStatuses.isEmpty) {
@@ -270,85 +248,69 @@ Widget build(BuildContext context) {
                           : "Uploaded at ${myStatuses.first['time']}"),
                     ),
                   ),
-                );
-              }
+                ),
+                if (friendStatusPreview.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text("Recent Updates", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                  ),
+                Divider(thickness: 1),
+                ...friendStatusPreview.map((statusPreview) {
+                  final latest = statusPreview['latestStatus'];
 
-              // Section title and divider
-              if (index == 1 && friendStatusPreview.isNotEmpty) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
+                  return FadeTransition(
+                    opacity: _animation,
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Text("Recent Updates",
-                          style: TextStyle(
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    Divider(thickness: 1),
-                  ],
-                );
-              }
-
-              // Friend statuses
-              final previewIndex = index - (friendStatusPreview.isNotEmpty ? 2 : 1);
-              final statusPreview = friendStatusPreview[previewIndex];
-              final latest = statusPreview['latestStatus'];
-
-              return FadeTransition(
-                key: ValueKey(statusPreview['userId']),
-                opacity: _animation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: Offset(0, 3),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.blueGrey[200],
-                        child: ClipOval(
-                          child: Image.network(
-                            latest['mediaUrl'] ?? '',
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      title: Text(statusPreview["name"],
-                          style: TextStyle(fontWeight: FontWeight.w500)),
-                      subtitle: Text(latest["time"]),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ViewStatusScreen(
-                              currentUserId: currentUserId,
-                              statuses: statusPreview['allStatuses'],
-                              onStatusDeleted: (statusId) => _onStatusDeleted(statusId),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.blueGrey[200],
+                            child: ClipOval(
+                              child: Image.network(
+                                latest['mediaUrl'] ?? '',
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                        );
-                      },
+                          title: Text(statusPreview["name"], style: TextStyle(fontWeight: FontWeight.w500)),
+                          subtitle: Text(latest["time"]),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ViewStatusScreen(
+                                  currentUserId: currentUserId,
+                                  statuses: statusPreview['allStatuses'],
+                                  onStatusDeleted: (statusId) => _onStatusDeleted(statusId),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ),
-  );
-}
+                  );
+                }),
+              ],
+            ),
+    );
+  }
 
   Future<void> _saveStatusToFirebase(Map<String, dynamic> status) async {
     try {
